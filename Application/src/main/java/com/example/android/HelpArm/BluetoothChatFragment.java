@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.example.android.bluetoothchat;
+package com.example.android.HelpArm;
 
 import android.app.ActionBar;
 import android.app.Activity;
@@ -27,21 +27,19 @@ import android.os.Message;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
-import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.inputmethod.EditorInfo;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ListView;
-import android.widget.TextView;
 import android.widget.Toast;
 
+import com.example.android.HelpArmApp.R;
 import com.example.android.common.logger.Log;
 
 /**
@@ -149,8 +147,7 @@ public class BluetoothChatFragment extends Fragment {
     @Override
     public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
         mConversationView = (ListView) view.findViewById(R.id.in);
-        mOutEditText = (EditText) view.findViewById(R.id.edit_text_out);
-        mSendButton = (Button) view.findViewById(R.id.button_send);
+        mSendButton = (Button) view.findViewById(R.id.button_compile);
     }
 
     /**
@@ -160,22 +157,16 @@ public class BluetoothChatFragment extends Fragment {
         Log.d(TAG, "setupChat()");
 
         // Initialize the array adapter for the conversation thread
-        mConversationArrayAdapter = new ArrayAdapter<String>(getActivity(), R.layout.message);
+        mConversationArrayAdapter = new ArrayAdapter<String>(getActivity(),R.layout.message);
 
         mConversationView.setAdapter(mConversationArrayAdapter);
-
-        // Initialize the compose field with a listener for the return key
-        mOutEditText.setOnEditorActionListener(mWriteListener);
 
         // Initialize the send button with a listener that for click events
         mSendButton.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
-                // Send a message using content of the edit text widget
                 View view = getView();
                 if (null != view) {
-                    TextView textView = (TextView) view.findViewById(R.id.edit_text_out);
-                    String message = textView.getText().toString();
-                    sendMessage(message);
+                    sendMessage();
                 }
             }
         });
@@ -201,43 +192,24 @@ public class BluetoothChatFragment extends Fragment {
 
     /**
      * Sends a message.
-     *
-     * @param message A string of text to send.
      */
-    private void sendMessage(String message) {
+    public void sendMessage() {
         // Check that we're actually connected before trying anything
         if (mChatService.getState() != BluetoothChatService.STATE_CONNECTED) {
             Toast.makeText(getActivity(), R.string.not_connected, Toast.LENGTH_SHORT).show();
             return;
         }
+        String message = "1";
+        byte[] send = message.getBytes();
+        mChatService.write(send);
 
-        // Check that there's actually something to send
-        if (message.length() > 0) {
-            // Get the message bytes and tell the BluetoothChatService to write
-            byte[] send = message.getBytes();
-            mChatService.write(send);
-
-            // Reset out string buffer to zero and clear the edit text field
-            mOutStringBuffer.setLength(0);
-            mOutEditText.setText(mOutStringBuffer);
-        }
+        // Reset out string buffer to zero and clear the edit text field
+        mOutStringBuffer.setLength(0);
     }
 
     /**
      * The action listener for the EditText widget, to listen for the return key
      */
-    private TextView.OnEditorActionListener mWriteListener
-            = new TextView.OnEditorActionListener() {
-        public boolean onEditorAction(TextView view, int actionId, KeyEvent event) {
-            // If the action is a key-up event on the return key, send the message
-            if (actionId == EditorInfo.IME_NULL && event.getAction() == KeyEvent.ACTION_UP) {
-                String message = view.getText().toString();
-                sendMessage(message);
-            }
-            return true;
-        }
-    };
-
     /**
      * Updates the status on the action bar.
      *
@@ -295,17 +267,19 @@ public class BluetoothChatFragment extends Fragment {
                             break;
                     }
                     break;
-                case Constants.MESSAGE_WRITE:
+                /*case Constants.MESSAGE_WRITE:
                     byte[] writeBuf = (byte[]) msg.obj;
                     // construct a string from the buffer
                     String writeMessage = new String(writeBuf);
                     mConversationArrayAdapter.add("Me:  " + writeMessage);
-                    break;
+                    break;*/
                 case Constants.MESSAGE_READ:
                     byte[] readBuf = (byte[]) msg.obj;
                     // construct a string from the valid bytes in the buffer
                     String readMessage = new String(readBuf, 0, msg.arg1);
+                    if(readMessage == "1"){Toast.makeText(getActivity(), "Compilation Done, ready to run",Toast.LENGTH_SHORT).show();}
                     mConversationArrayAdapter.add(mConnectedDeviceName + ":  " + readMessage);
+
                     break;
                 case Constants.MESSAGE_DEVICE_NAME:
                     // save the connected device's name
@@ -382,6 +356,7 @@ public class BluetoothChatFragment extends Fragment {
                 // Launch the DeviceListActivity to see devices and do scan
                 Intent serverIntent = new Intent(getActivity(), DeviceListActivity.class);
                 startActivityForResult(serverIntent, REQUEST_CONNECT_DEVICE_SECURE);
+
                 return true;
             }
             case R.id.insecure_connect_scan: {

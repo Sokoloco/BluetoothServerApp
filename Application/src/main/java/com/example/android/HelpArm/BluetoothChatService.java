@@ -14,16 +14,18 @@
  * limitations under the License.
  */
 
-package com.example.android.bluetoothchat;
+package com.example.android.HelpArm;
 
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothServerSocket;
 import android.bluetooth.BluetoothSocket;
 import android.content.Context;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
+import android.support.annotation.RequiresApi;
 
 import com.example.android.common.logger.Log;
 
@@ -48,9 +50,9 @@ public class BluetoothChatService {
 
     // Unique UUID for this application
     private static final UUID MY_UUID_SECURE =
-            UUID.fromString("fa87c0d0-afac-11de-8a39-0800200c9a66");
+            UUID.fromString("04c6093b-0000-1000-8000-00805f9b34fb");
     private static final UUID MY_UUID_INSECURE =
-            UUID.fromString("8ce255c0-200a-11e0-ac64-0800200c9a66");
+            UUID.fromString("04c6093b-0000-1000-8000-00805f9b34fb");
 
     // Member fields
     private final BluetoothAdapter mAdapter;
@@ -74,6 +76,7 @@ public class BluetoothChatService {
      * @param context The UI Activity Context
      * @param handler A Handler to send messages back to the UI Activity
      */
+    @RequiresApi(api = Build.VERSION_CODES.ECLAIR)
     public BluetoothChatService(Context context, Handler handler) {
         mAdapter = BluetoothAdapter.getDefaultAdapter();
         mState = STATE_NONE;
@@ -138,6 +141,7 @@ public class BluetoothChatService {
      * @param device The BluetoothDevice to connect
      * @param secure Socket Security type - Secure (true) , Insecure (false)
      */
+    @RequiresApi(api = Build.VERSION_CODES.GINGERBREAD_MR1)
     public synchronized void connect(BluetoothDevice device, boolean secure) {
         Log.d(TAG, "connect to: " + device);
 
@@ -160,6 +164,7 @@ public class BluetoothChatService {
         mConnectThread.start();
         // Update UI title
         updateUserInterfaceTitle();
+
     }
 
     /**
@@ -168,6 +173,7 @@ public class BluetoothChatService {
      * @param socket The BluetoothSocket on which the connection was made
      * @param device The BluetoothDevice that has been connected
      */
+    @RequiresApi(api = Build.VERSION_CODES.ECLAIR)
     public synchronized void connected(BluetoothSocket socket, BluetoothDevice
             device, final String socketType) {
         Log.d(TAG, "connected, Socket Type:" + socketType);
@@ -304,6 +310,7 @@ public class BluetoothChatService {
         private final BluetoothServerSocket mmServerSocket;
         private String mSocketType;
 
+        @RequiresApi(api = Build.VERSION_CODES.GINGERBREAD_MR1)
         public AcceptThread(boolean secure) {
             BluetoothServerSocket tmp = null;
             mSocketType = secure ? "Secure" : "Insecure";
@@ -324,6 +331,7 @@ public class BluetoothChatService {
             mState = STATE_LISTEN;
         }
 
+        @RequiresApi(api = Build.VERSION_CODES.ECLAIR)
         public void run() {
             Log.d(TAG, "Socket Type: " + mSocketType +
                     "BEGIN mAcceptThread" + this);
@@ -390,6 +398,7 @@ public class BluetoothChatService {
         private final BluetoothDevice mmDevice;
         private String mSocketType;
 
+        @RequiresApi(api = Build.VERSION_CODES.GINGERBREAD_MR1)
         public ConnectThread(BluetoothDevice device, boolean secure) {
             mmDevice = device;
             BluetoothSocket tmp = null;
@@ -412,6 +421,7 @@ public class BluetoothChatService {
             mState = STATE_CONNECTING;
         }
 
+        @RequiresApi(api = Build.VERSION_CODES.ECLAIR)
         public void run() {
             Log.i(TAG, "BEGIN mConnectThread SocketType:" + mSocketType);
             setName("ConnectThread" + mSocketType);
@@ -463,6 +473,7 @@ public class BluetoothChatService {
         private final InputStream mmInStream;
         private final OutputStream mmOutStream;
 
+        @RequiresApi(api = Build.VERSION_CODES.ECLAIR)
         public ConnectedThread(BluetoothSocket socket, String socketType) {
             Log.d(TAG, "create ConnectedThread: " + socketType);
             mmSocket = socket;
